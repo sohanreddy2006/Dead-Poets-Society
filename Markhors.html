@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markhors — Dead Poets Society</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a; color: #e2e8f0;
+      min-height: 100vh;
+    }
+    .container { max-width: 860px; margin: 0 auto; padding: 20px; }
+
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      padding: 16px 28px; border-radius: 14px; margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 20px; letter-spacing: 1px; }
+    header h1 .team { color: #fbbf24; }
+    header h1 .tourney { color: #64748b; font-size: 12px; display: block; letter-spacing: 0; }
+
+    .nav { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+    .nav-btn {
+      padding: 8px 18px; border: none; border-radius: 8px;
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      background: #1e293b; color: #64748b; transition: all 0.2s;
+    }
+    .nav-btn:hover { background: #334155; }
+    .nav-btn.active { background: #fbbf24; color: #0f172a; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card { background: #1e293b; border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+    .card-title {
+      font-size: 15px; font-weight: 600; color: #fbbf24; margin-bottom: 10px;
+      padding-bottom: 8px; border-bottom: 1px solid #334155;
+    }
+
+    /* ---- Scorecard ---- */
+    .sc-card {
+      background: #edf5fb; border-radius: 14px; padding: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3); margin-bottom: 10px;
+    }
+    .sc-header {
+      background: #dbeaf5; border-radius: 14px; height: 32px;
+      padding-left: 14px; display: flex; align-items: center; margin-bottom: 6px;
+    }
+    .sc-header h2 { font-size: 20px; font-weight: 800; color: #103b78; letter-spacing: 0.5px; }
+
+    .team-sect { margin-bottom: 10px; }
+    .t-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 0 2px; margin-bottom: 5px; gap: 6px;
+    }
+    .t-head .tn { font-size: 16px; font-weight: 700; color: #103b78; }
+    .t-head .tm { font-size: 16px; font-weight: 700; color: #103b78; white-space: nowrap; }
+
+    .inn-r { display: flex; gap: 8px; margin-bottom: 3px; }
+    .inn-r .col { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; overflow: hidden; }
+    .inn-r .cl { font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+
+    .pn {
+      height: 26px; border-radius: 13px; padding-left: 10px;
+      display: flex; align-items: center; font-size: 12px; font-weight: 700;
+      color: #103b78; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex: 1; min-width: 0;
+    }
+    .pn.y { background: #d6cf5b; }
+    .pn.b { background: #c7d8ff; }
+
+    .ps {
+      height: 26px; border-radius: 13px; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #103b78;
+      flex-shrink: 0; width: 65px;
+    }
+    .ps.bw { width: 80px; }
+    .ps.dnb { color: #94a3b8; font-style: italic; }
+
+    .sc-footer {
+      background: #dbeaf5; border-radius: 14px; min-height: 44px;
+      padding: 8px 14px; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; gap: 2px;
+    }
+    .sc-footer .res { font-size: 14px; font-weight: 700; color: #103b78; text-align: center; }
+    .sc-footer .mvp { font-size: 12px; font-weight: 700; color: #103b78; text-align: center; }
+    .sc-footer .mvp span { color: #d6cf5b; background: #103b78; padding: 1px 8px; border-radius: 10px; }
+
+    .del-link { font-size: 11px; color: #64748b; cursor: pointer; text-align: right; margin-top: 2px; }
+    .del-link:hover { color: #ef4444; }
+
+    /* ---- Player Stats ---- */
+    .search-box { position: relative; margin-bottom: 14px; }
+    .search-box input {
+      width: 100%; padding: 10px 14px; border: 1px solid #334155; border-radius: 10px;
+      background: #0f172a; color: #e2e8f0; font-size: 14px; outline: none;
+    }
+    .search-box input:focus { border-color: #fbbf24; }
+    .search-res {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      margin-top: 4px; max-height: 240px; overflow-y: auto; display: none; z-index: 100;
+    }
+    .search-res .item {
+      padding: 8px 14px; cursor: pointer; border-bottom: 1px solid #334155;
+      display: flex; justify-content: space-between;
+    }
+    .search-res .item:hover { background: #334155; }
+    .search-res .item:last-child { border-bottom: none; }
+    .search-res .item .nm { font-weight: 600; font-size: 13px; }
+    .search-res .item .cnt { color: #64748b; font-size: 11px; }
+
+    .no-data { text-align: center; padding: 40px 20px; color: #64748b; }
+    .no-data h3 { color: #94a3b8; font-size: 16px; }
+
+    .sg {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-bottom: 14px;
+    }
+    .sc {
+      background: #0f172a; border-radius: 10px; padding: 12px; text-align: center;
+    }
+    .sc .v { font-size: 24px; font-weight: 700; color: #fbbf24; }
+    .sc .l { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .sc.bwl .v { color: #38bdf8; }
+    .sc.mvp .v { color: #a78bfa; }
+
+    .mt { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .mt th { text-align: left; padding: 5px 8px; color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #334155; }
+    .mt td { padding: 4px 8px; border-bottom: 1px solid #1e293b; }
+
+    /* ---- Squad & Leaderboard tables ---- */
+    .rank-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .rank-table th {
+      text-align: left; padding: 6px 10px; color: #64748b;
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid #334155;
+    }
+    .rank-table td { padding: 5px 10px; border-bottom: 1px solid #1e293b; }
+    .rank-table tr:hover td { background: #0f172a; }
+    .rank-num { color: #64748b; font-weight: 700; width: 30px; }
+    .rank-gold { color: #fbbf24; }
+    .rank-silver { color: #94a3b8; }
+    .rank-bronze { color: #cd7f32; }
+    .lb-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .lb-card { background: #0f172a; border-radius: 10px; padding: 12px; }
+    .lb-card h4 { color: #fbbf24; font-size: 13px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #334155; }
+
+    .data-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      padding: 7px 16px; border: none; border-radius: 7px; cursor: pointer;
+      font-size: 12px; font-weight: 600; transition: all 0.2s;
+    }
+    .btn-p { background: #fbbf24; color: #0f172a; }
+    .btn-p:hover { background: #f59e0b; }
+    .btn-s { background: #334155; color: #e2e8f0; }
+    .btn-s:hover { background: #475569; }
+    .btn-d { background: #ef4444; color: white; }
+    .btn-d:hover { background: #dc2626; }
+
+    .toast {
+      position: fixed; top: 20px; right: 20px;
+      background: #22c55e; color: #052e16; padding: 12px 20px;
+      border-radius: 10px; font-weight: 600;
+      transform: translateX(120%); transition: transform 0.3s ease; z-index: 1000;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.error { background: #ef4444; color: #fff; }
+
+    @media (max-width: 780px) {
+      .container { padding: 10px; }
+      .t-head .tn { font-size: 13px; }
+      .t-head .tm { font-size: 13px; }
+      .pn { font-size: 10px; padding-left: 8px; height: 22px; border-radius: 11px; }
+      .ps { font-size: 10px; width: 50px; height: 22px; border-radius: 11px; }
+      .ps.bw { width: 65px; }
+      .inn-r { flex-direction: column; }
+      .sg { grid-template-columns: repeat(2, 1fr); }
+      .lb-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div><h1><span class="team">Dead Poets Society</span> <span class="tourney">Tournament: Markhors</span></h1></div>
+    </header>
+
+    <div class="nav">
+      <button class="nav-btn active" data-tab="playerStats">Player Stats</button>
+      <button class="nav-btn" data-tab="matchSummary">Match Summary</button>
+      <button class="nav-btn" data-tab="squad">Squad</button>
+      <button class="nav-btn" data-tab="leaderboards">Leaderboards</button>
+      <button class="nav-btn" data-tab="manageData" style="margin-left:auto;">Manage</button>
+    </div>
+
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+      <label style="color:#94a3b8;font-size:13px;">Tournament:</label>
+      <select id="tournamentFilter" style="flex:1;padding:8px 14px;border:1px solid #334155;border-radius:8px;background:#1e293b;color:#e2e8f0;font-size:13px;outline:none;" onchange="onTournamentChange()">
+        <option value="">All Tournaments</option>
+      </select>
+    </div>
+
+    <!-- Player Stats -->
+    <div id="tab-playerStats" class="tab-content active">
+      <div class="card">
+        <div class="card-title">Search Player</div>
+        <div class="search-box">
+          <input type="text" id="playerSearch" placeholder="Search for a player..." autocomplete="off" />
+          <div class="search-res" id="searchResults"></div>
+        </div>
+        <div id="playerStatsDisplay">
+          <div class="no-data"><h3>Search for a player to view their stats</h3></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match Summary -->
+    <div id="tab-matchSummary" class="tab-content">
+      <div class="card">
+        <div class="card-title">All Matches</div>
+        <div style="margin-bottom:12px;">
+          <select id="matchSelector" style="width:100%;padding:10px 14px;border:1px solid #334155;border-radius:10px;background:#0f172a;color:#e2e8f0;font-size:14px;outline:none;" onchange="renderSelectedMatch()">
+            <option value="">-- Select a match --</option>
+          </select>
+        </div>
+        <div id="allMatchesDisplay"></div>
+      </div>
+    </div>
+
+    <!-- Squad -->
+    <div id="tab-squad" class="tab-content">
+      <div class="card">
+        <div class="card-title">Dead Poets Society — Squad</div>
+        <div id="squadDisplay"></div>
+      </div>
+    </div>
+
+    <!-- Leaderboards -->
+    <div id="tab-leaderboards" class="tab-content">
+      <div class="card">
+        <div class="card-title">Leaderboards</div>
+        <div id="leaderboardDisplay"></div>
+      </div>
+    </div>
+
+    <!-- Manage -->
+    <div id="tab-manageData" class="tab-content">
+      <div class="card">
+        <div class="card-title">Manage Data</div>
+        <p style="color:#94a3b8;margin-bottom:10px;font-size:13px;">Export, import, or clear all data.</p>
+        <div class="data-actions">
+          <button class="btn btn-s" onclick="exportData()">Export JSON</button>
+          <button class="btn btn-s" onclick="document.getElementById('importFile').click()">Import</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
+          <button class="btn btn-d" onclick="clearAllData()">Clear All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'markhorsStats_v4';
+    const TEAM_NAME = 'Dead Poets Society';
+    const TEAM_ROSTER = [
+      'kdb177', 'arjsoh', 'mick_056', 'nick01311', 'xtzgamer24',
+      'ionizedinferno', 'sujay', 'zenixyt77', 'og1lucky', 'emilylei981',
+      'light_6921', 'blondedorange', 'shyam.ly', 'khushal0__0', 'nervous_pizza1078'
+    ];
+    const ROLES = { 'kdb177': 'Captain', 'arjsoh': 'VC' };
+    let data = { matches: [] };
+    let selectedTournament = '';
+
+    function getTournamentMatches(t) {
+      if (!t) return data.matches;
+      return data.matches.filter(m => m.tournament === t);
+    }
+
+    function populateTournamentFilter() {
+      const sel = document.getElementById('tournamentFilter');
+      const current = sel.value;
+      const tournaments = [...new Set(data.matches.map(m => m.tournament).filter(Boolean))].sort();
+      sel.innerHTML = '<option value="">All Tournaments</option>' + tournaments.map(t => '<option value="' + t + '" ' + (t === current ? 'selected' : '') + '>' + t + '</option>').join('');
+    }
+
+    function onTournamentChange() {
+      selectedTournament = document.getElementById('tournamentFilter').value;
+      const activeTab = document.querySelector('.nav-btn.active');
+      if (activeTab) activeTab.click();
+    }
+
+    // ---- Tabs ----
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        const tab = btn.dataset.tab;
+        if (tab === 'playerStats') { renderSearch(''); }
+        if (tab === 'matchSummary') renderAllMatches();
+        if (tab === 'squad') renderSquad();
+        if (tab === 'leaderboards') renderLeaderboards();
+      });
+    });
+
+    function loadData() {
+      try { const r = localStorage.getItem(STORAGE_KEY); if (r) data = JSON.parse(r); } catch (e) {}
+      if (!data.matches) data.matches = [];
+    }
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    function toast(msg, err) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast' + (err ? ' error' : '');
+      t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ---- Scorecard Render ----
+    function renderScorecard(m) {
+      let html = '<div class="sc-card"><div class="sc-header"><h2>MATCH SUMMARY</h2></div>';
+      m.innings.forEach(inn => {
+        const meta = (inn.overs ? inn.overs + ' OVERS' : '') + (inn.total ? ' — ' + inn.total : '');
+        html += '<div class="team-sect"><div class="t-head"><div class="tn">' + inn.battingTeam + '</div><div class="tm">' + meta + '</div></div>';
+        html += '<div class="inn-r"><div class="col"><div class="cl">Batting</div>';
+        inn.batsmen.forEach((b, bi) => {
+          const hl = b.name === m.potm;
+          const pc = hl ? 'y' : (bi % 2 === 0 ? 'b' : 'y');
+          const d = b.dismissal === 'dnb' ? 'DNB' : b.runs + ' (' + b.balls + ')';
+          html += '<div style="display:flex;align-items:center;gap:5px;width:100%;"><div class="pn ' + pc + '">' + b.name + '</div><div class="ps ' + (b.dismissal === 'dnb' ? 'dnb' : '') + '">' + d + '</div></div>';
+        });
+        html += '</div><div class="col"><div class="cl">Bowling</div>';
+        inn.bowlers.forEach((b, bi) => {
+          const hl = b.name === m.potm;
+          const pc = hl ? 'y' : (bi % 2 === 0 ? 'b' : 'y');
+          const dnb = b.overs === 0 && b.runs === 0 && b.wkts === 0;
+          const d = dnb ? 'DNB' : b.wkts + '-' + b.runs + ' (' + b.overs + ')';
+          html += '<div style="display:flex;align-items:center;gap:5px;width:100%;"><div class="pn ' + pc + '">' + b.name + '</div><div class="ps bw ' + (dnb ? 'dnb' : '') + '">' + d + '</div></div>';
+        });
+        html += '</div></div></div>';
+      });
+      html += '<div class="sc-footer"><div class="res">' + (m.result || '') + '</div><div class="mvp">Most Valuable Player (MVP) — <span>' + (m.potm || '') + '</span></div></div></div>';
+      return html;
+    }
+
+    // ---- Match Summary ----
+    function renderAllMatches() {
+      const filter = selectedTournament;
+      const matches = filter ? data.matches.filter(m => m.tournament === filter) : data.matches;
+      const sel = document.getElementById('matchSelector');
+      sel.innerHTML = '<option value="">-- Select a match --</option>';
+      matches.forEach((m, i) => {
+        const globalIdx = data.matches.indexOf(m);
+        const opt = document.createElement('option');
+        opt.value = globalIdx;
+        opt.textContent = 'Match ' + (i + 1) + ' — ' + m.date + ' vs ' + m.opponent + (m.tournament ? ' [' + m.tournament + ']' : '');
+        sel.appendChild(opt);
+      });
+      const c = document.getElementById('allMatchesDisplay');
+      if (!data.matches.length) { c.innerHTML = '<div class="no-data"><h3>No matches recorded yet</h3></div>'; return; }
+      c.innerHTML = '<div class="no-data" style="padding:20px;"><h3>Select a match from the dropdown above</h3></div>';
+    }
+    function renderSelectedMatch() {
+      const sel = document.getElementById('matchSelector');
+      const c = document.getElementById('allMatchesDisplay');
+      const idx = parseInt(sel.value);
+      if (isNaN(idx) || !data.matches[idx]) { c.innerHTML = '<div class="no-data" style="padding:20px;"><h3>Select a match from the dropdown above</h3></div>'; return; }
+      const m = data.matches[idx];
+      c.innerHTML = '<div>' + renderScorecard(m) + '<div class="del-link" onclick="deleteMatch(' + idx + ')">Delete this match</div></div>';
+    }
+    function deleteMatch(idx) {
+      if (!confirm('Delete this match?')) return;
+      data.matches.splice(idx, 1); saveData(); renderAllMatches(); toast('Match deleted');
+    }
+
+    // ---- Player Data ----
+    function getPD(t) {
+      const p = {};
+      TEAM_ROSTER.forEach(n => { p[n] = []; });
+      const filter = t !== undefined ? t : (selectedTournament || '');
+      data.matches.forEach((m, midx) => {
+        if (filter && m.tournament !== filter) return;
+        m.innings.forEach(inn => {
+          const db = inn.battingTeam === TEAM_NAME, dBw = inn.bowlingTeam === TEAM_NAME;
+          inn.batsmen.forEach(b => {
+            if (!db) return;
+            if (!p[b.name]) p[b.name] = [];
+            p[b.name].push({ t: 'bat', midx, date: m.date, opp: m.opponent, result: m.result, potm: m.potm, runs: b.runs, balls: b.balls, fours: b.fours, sixes: b.sixes, dismissal: b.dismissal, sr: b.sr });
+          });
+          inn.bowlers.forEach(b => {
+            if (!dBw) return;
+            if (!p[b.name]) p[b.name] = [];
+            p[b.name].push({ t: 'bowl', midx, date: m.date, opp: m.opponent, result: m.result, potm: m.potm, overs: b.overs, maidens: b.maidens, runs: b.runs, wkts: b.wkts, econ: b.econ });
+          });
+        });
+      });
+      return p;
+    }
+
+    function calcAllStats(name, t) {
+      const all = getPD(t);
+      const entries = all[name] || [];
+      let runs = 0, balls = 0, fours = 0, sixes = 0, wkts = 0, overs = 0, runsConc = 0, maidens = 0, dism = 0, innsBat = 0, innsBowl = 0, mvp = 0, matches = new Set();
+      entries.forEach(e => {
+        matches.add(e.midx);
+        if (e.t === 'bat') {
+          innsBat++;
+          if (e.dismissal !== 'dnb') { runs += e.runs; balls += e.balls; fours += e.fours; sixes += e.sixes; if (e.dismissal !== 'not out') dism++; }
+        } else { innsBowl++; wkts += e.wkts; overs += e.overs; runsConc += e.runs; maidens += e.maidens; }
+      });
+      const filter = t !== undefined ? t : (selectedTournament || '');
+      data.matches.forEach(m => { if ((!filter || m.tournament === filter) && m.potm && m.potm.toLowerCase().trim() === name.toLowerCase().trim()) mvp++; });
+      const srNum = balls > 0 ? (runs/balls*100) : 0;
+      const impact = Math.round((runs * srNum / 100) + (wkts * 25) + (mvp * 30));
+      return {
+        runs, balls, fours, sixes, wkts, overs, runsConc, maidens,
+        batAvg: dism > 0 ? (runs/dism).toFixed(2) : runs > 0 ? '-' : '0',
+        sr: srNum.toFixed(2),
+        econ: overs > 0 ? (runsConc/overs).toFixed(2) : '0',
+        bowlAvg: wkts > 0 ? (runsConc/wkts).toFixed(2) : '-',
+        mvp, matches: matches.size, innsBat, innsBowl, impact
+      };
+    }
+
+    // ---- Player Stats Tab ----
+    const sInp = document.getElementById('playerSearch');
+    const sRes = document.getElementById('searchResults');
+    function renderSearch(q) {
+      const p = getPD();
+      const names = Object.keys(p).sort();
+      if (!q) { sRes.style.display = 'none'; return; }
+      const f = names.filter(n => n.toLowerCase().includes(q.toLowerCase()));
+      if (!f.length) { sRes.style.display = 'none'; return; }
+      sRes.innerHTML = f.map(n => '<div class="item" data-n="' + n + '"><span class="nm">' + hl(n, q) + '</span><span class="cnt">' + p[n].length + ' entry' + (p[n].length !== 1 ? 'ies' : 'y') + '</span></div>').join('');
+      sRes.style.display = 'block';
+      sRes.querySelectorAll('.item').forEach(el => { el.addEventListener('click', () => { sInp.value = el.dataset.n; sRes.style.display = 'none'; showPlayer(el.dataset.n); }); });
+    }
+    function hl(t, q) {
+      const i = t.toLowerCase().indexOf(q.toLowerCase());
+      return i === -1 ? t : t.slice(0,i) + '<span style="color:#fbbf24;font-weight:700;">' + t.slice(i,i+q.length) + '</span>' + t.slice(i+q.length);
+    }
+    sInp.addEventListener('input', () => renderSearch(sInp.value));
+    sInp.addEventListener('focus', function() { if (this.value) renderSearch(this.value); });
+    sInp.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const val = this.value.trim();
+        if (val) { sRes.style.display = 'none'; showPlayer(val); }
+      }
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('.search-box')) sRes.style.display = 'none'; });
+
+    function showPlayer(name) {
+      const filter = selectedTournament || undefined;
+      const s = calcAllStats(name, filter);
+      const p = getPD(filter);
+      const entries = p[name] || [];
+      const container = document.getElementById('playerStatsDisplay');
+
+      // Group batting and bowling by match
+      const byMatch = {};
+      entries.forEach(e => {
+        if (!byMatch[e.midx]) byMatch[e.midx] = {};
+        byMatch[e.midx][e.t] = e;
+      });
+
+      const matchKeys = Object.keys(byMatch).sort((a, b) => a - b);
+      let rows = matchKeys.map(midx => {
+        const m = data.matches[midx];
+        const bat = byMatch[midx].bat;
+        const bowl = byMatch[midx].bowl;
+        const batDisplay = bat ? (bat.dismissal === 'dnb' ? '<span style="color:#94a3b8;">DNB</span>' : bat.runs + ' (' + bat.balls + ')') : '<span style="color:#64748b;">—</span>';
+        const bowlDisplay = bowl ? (bowl.overs === 0 && bowl.runs === 0 && bowl.wkts === 0 ? '<span style="color:#94a3b8;">DNB</span>' : bowl.wkts + '-' + bowl.runs + ' (' + bowl.overs + ')') : '<span style="color:#64748b;">—</span>';
+        return '<tr><td style="padding:4px 10px;border-bottom:1px solid #1e293b;">' + m.date + '</td><td style="padding:4px 10px;border-bottom:1px solid #1e293b;">' + m.opponent + '</td><td style="padding:4px 10px;border-bottom:1px solid #1e293b;">' + batDisplay + '</td><td style="padding:4px 10px;border-bottom:1px solid #1e293b;">' + bowlDisplay + '</td></tr>';
+      }).join('');
+      container.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #334155;"><h2 style="color:#fbbf24;font-size:22px;">' + name + '</h2><span style="color:#94a3b8;font-size:12px;">' + s.matches + ' match' + (s.matches !== 1 ? 'es' : '') + ' (' + s.innsBat + ' inns bat, ' + s.innsBowl + ' inns bowl)</span></div><div class="sg"><div class="sc"><div class="v">' + s.runs + '</div><div class="l">Runs</div></div><div class="sc"><div class="v">' + s.balls + '</div><div class="l">Balls</div></div><div class="sc"><div class="v">' + s.batAvg + '</div><div class="l">Bat Avg</div></div><div class="sc"><div class="v">' + s.sr + '</div><div class="l">Strike Rate</div></div><div class="sc bwl"><div class="v">' + s.wkts + '</div><div class="l">Wickets</div></div><div class="sc bwl"><div class="v">' + s.overs.toFixed(1) + '</div><div class="l">Overs</div></div><div class="sc bwl"><div class="v">' + s.econ + '</div><div class="l">Economy</div></div><div class="sc bwl"><div class="v">' + s.bowlAvg + '</div><div class="l">Bowl Avg</div></div><div class="sc mvp"><div class="v">' + s.mvp + '</div><div class="l">POTM</div></div><div class="sc" style="grid-column:1/-1;background:#1e293b;border:1px solid #fbbf24;"><div class="v" style="color:#fbbf24;">' + s.impact + '</div><div class="l" style="color:#fbbf24;">Impact Score</div></div></div><div style="font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:6px;">Match by Match</div><div style="overflow-x:auto;"><table class="mt"><thead><tr><th>Date</th><th>Opponent</th><th>Batting</th><th>Bowling</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+
+    // ---- Squad ----
+    function renderSquad() {
+      const c = document.getElementById('squadDisplay');
+      const filter = selectedTournament;
+      const label = filter ? ' (' + filter + ')' : ' (All Tournaments)';
+      let rows = TEAM_ROSTER.map(n => {
+        const s = calcAllStats(n, filter || undefined);
+        const role = ROLES[n];
+        const nameDisplay = n + (role ? ' <span style="color:#94a3b8;font-size:11px;font-weight:400;">(' + role + ')</span>' : '');
+        return '<tr><td style="padding:5px 10px;border-bottom:1px solid #1e293b;font-weight:600;">' + nameDisplay + '</td><td style="padding:5px 10px;border-bottom:1px solid #1e293b;">' + s.runs + '</td><td style="padding:5px 10px;border-bottom:1px solid #1e293b;">' + s.batAvg + '</td><td style="padding:5px 10px;border-bottom:1px solid #1e293b;">' + s.sr + '</td><td style="padding:5px 10px;border-bottom:1px solid #1e293b;">' + s.wkts + '</td><td style="padding:5px 10px;border-bottom:1px solid #1e293b;">' + s.econ + '</td><td style="padding:5px 10px;border-bottom:1px solid #1e293b;">' + s.bowlAvg + '</td><td style="padding:5px 10px;border-bottom:1px solid #1e293b;">' + s.mvp + '</td><td style="padding:5px 10px;border-bottom:1px solid #1e293b;color:#64748b;">' + s.matches + '</td></tr>';
+      }).join('');
+      const title = 'Dead Poets Society — Squad' + (selectedTournament ? ' [' + selectedTournament + ']' : '');
+      c.innerHTML = '<div style="overflow-x:auto;"><table class="rank-table"><thead><tr><th>Player</th><th>Runs</th><th>Bat Avg</th><th>SR</th><th>Wkts</th><th>Econ</th><th>Bowl Avg</th><th>POTM</th><th>Matches</th></tr></thead><tbody>' + rows + '</tbody></table><div style="margin-top:8px;font-size:11px;color:#64748b;">' + title + '</div></div>';
+    }
+
+    // ---- Leaderboards ----
+    function renderLeaderboards() {
+      const c = document.getElementById('leaderboardDisplay');
+      const filter = selectedTournament || undefined;
+      const p = getPD(filter);
+      const names = Object.keys(p).filter(n => p[n].length > 0);
+      if (!names.length) { c.innerHTML = '<div class="no-data"><h3>No data yet</h3></div>'; return; }
+
+      const stats = names.map(n => ({ name: n, s: calcAllStats(n, filter) }));
+
+      const byRuns = [...stats].sort((a, b) => b.s.runs - a.s.runs).filter(x => x.s.runs > 0);
+      const byWkts = [...stats].sort((a, b) => b.s.wkts - a.s.wkts).filter(x => x.s.wkts > 0);
+      const byBatAvg = [...stats].filter(x => x.s.batAvg !== '0' && x.s.batAvg !== '-').sort((a, b) => {
+        const av = a.s.batAvg === '-' ? -1 : parseFloat(a.s.batAvg);
+        const bv = b.s.batAvg === '-' ? -1 : parseFloat(b.s.batAvg);
+        return bv - av;
+      });
+      const byBowlAvg = [...stats].filter(x => x.s.bowlAvg !== '-' && x.s.bowlAvg !== '0' && !isNaN(parseFloat(x.s.bowlAvg))).sort((a, b) => parseFloat(a.s.bowlAvg) - parseFloat(b.s.bowlAvg));
+      const byEcon = [...stats].filter(x => x.s.econ !== '0' && parseFloat(x.s.econ) > 0).sort((a, b) => parseFloat(a.s.econ) - parseFloat(b.s.econ));
+      const bySR = [...stats].filter(x => x.s.sr !== '0' && parseFloat(x.s.sr) > 0).sort((a, b) => parseFloat(b.s.sr) - parseFloat(a.s.sr));
+      const byMVP = [...stats].filter(x => x.s.mvp > 0).sort((a, b) => b.s.mvp - a.s.mvp);
+      const byImpact = [...stats].filter(x => x.s.impact > 0).sort((a, b) => b.s.impact - a.s.impact);
+
+      function rankPill(pos) {
+        if (pos === 0) return '<span style="color:#fbbf24;">🥇</span>';
+        if (pos === 1) return '<span style="color:#94a3b8;">🥈</span>';
+        if (pos === 2) return '<span style="color:#cd7f32;">🥉</span>';
+        return '<span style="color:#64748b;">#' + (pos + 1) + '</span>';
+      }
+
+      function tbl(data, label, valFn) {
+        if (!data.length) return '<div style="color:#64748b;font-size:12px;padding:8px;">No entries</div>';
+        return '<table class="mt"><thead><tr><th></th><th>Player</th><th>' + label + '</th></tr></thead><tbody>' +
+          data.slice(0, 10).map((x, i) => '<tr><td style="padding:4px 8px;border-bottom:1px solid #1e293b;width:30px;">' + rankPill(i) + '</td><td style="padding:4px 8px;border-bottom:1px solid #1e293b;">' + x.name + '</td><td style="padding:4px 8px;border-bottom:1px solid #1e293b;font-weight:700;">' + valFn(x) + '</td></tr>').join('') + '</tbody></table>';
+      }
+
+      c.innerHTML = '<div class="lb-grid">' +
+        '<div class="lb-card"><h4>Most Runs</h4>' + tbl(byRuns, 'Runs', x => x.s.runs) + '</div>' +
+        '<div class="lb-card"><h4>Most Wickets</h4>' + tbl(byWkts, 'Wkts', x => x.s.wkts) + '</div>' +
+        '<div class="lb-card"><h4>Best Batting Avg</h4>' + tbl(byBatAvg, 'Avg', x => x.s.batAvg) + '</div>' +
+        '<div class="lb-card"><h4>Best Bowling Avg</h4>' + tbl(byBowlAvg, 'Avg', x => x.s.bowlAvg) + '</div>' +
+        '<div class="lb-card"><h4>Best Economy</h4>' + tbl(byEcon, 'Econ', x => x.s.econ) + '</div>' +
+        '<div class="lb-card"><h4>Best Strike Rate</h4>' + tbl(bySR, 'SR', x => x.s.sr) + '</div>' +
+        '<div class="lb-card"><h4>Highest Impact Score</h4>' + tbl(byImpact, 'Impact', x => x.s.impact) + '</div>' +
+        '<div class="lb-card"><h4>Most POTM / MVP</h4>' + tbl(byMVP, 'POTM', x => x.s.mvp) + '</div>' +
+        '</div>';
+    }
+
+    // ---- Manage ----
+    function exportData() {
+      const b = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+      a.download = 'markhors-stats.json'; a.click(); URL.revokeObjectURL(a.href); toast('Exported!');
+    }
+    function importData(ev) {
+      const f = ev.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = e => {
+        try {
+          const d = JSON.parse(e.target.result);
+          if (!d.matches || !Array.isArray(d.matches)) { toast('Invalid file', true); return; }
+          data = d; saveData(); toast('Imported!');
+        } catch(_) { toast('Error importing', true); }
+      };
+      r.readAsText(f); ev.target.value = '';
+    }
+    function clearAllData() {
+      if (!confirm('Clear all data?')) return;
+      data = { matches: [] }; saveData();
+      document.getElementById('playerStatsDisplay').innerHTML = '<div class="no-data"><h3>Search for a player</h3></div>';
+      toast('Cleared');
+    }
+
+    // ---- Seed ----
+    loadData();
+    if (!data.matches.length) seedMatch1();
+    if (data.matches.length === 1) seedMatch2();
+    populateTournamentFilter();
+
+    function seedMatch1() {
+      data.matches.push({
+        date: '2026-07-12', venue: '', opponent: 'Brexit Ballers CC', tournament: 'Markhors',
+        result: 'Dead Poets Society won the game by 1 wicket.',
+        potm: 'kdb177',
+        innings: [
+          {
+            battingTeam: 'Brexit Ballers CC',
+            bowlingTeam: 'Dead Poets Society',
+            batsmen: [
+              { name: 'devdoot_26', runs: 42, balls: 12, fours: 0, sixes: 0, dismissal: 'bowled', sr: '350.00' },
+              { name: 'akashjaiswal4', runs: 42, balls: 12, fours: 0, sixes: 0, dismissal: 'caught', sr: '350.00' },
+              { name: 'cryingb4by', runs: 34, balls: 11, fours: 0, sixes: 0, dismissal: 'bowled', sr: '309.09' },
+              { name: 'conquerorisback*', runs: 29, balls: 8, fours: 0, sixes: 0, dismissal: 'caught', sr: '362.50' },
+              { name: 'nota.poet', runs: 19, balls: 6, fours: 0, sixes: 0, dismissal: 'bowled', sr: '316.67' },
+              { name: '.ninja.', runs: 13, balls: 9, fours: 0, sixes: 0, dismissal: 'lbw', sr: '144.44' },
+              { name: 'kakashi_28.', runs: 12, balls: 4, fours: 0, sixes: 0, dismissal: 'caught', sr: '300.00' },
+              { name: 'ujjxyz', runs: 10, balls: 4, fours: 0, sixes: 0, dismissal: 'bowled', sr: '250.00' },
+              { name: 'dollcleen', runs: 8, balls: 3, fours: 0, sixes: 0, dismissal: 'run out', sr: '266.67' },
+              { name: 'stevenstrangeee', runs: 3, balls: 2, fours: 0, sixes: 0, dismissal: 'bowled', sr: '150.00' },
+              { name: 'yoyibs', runs: 0, balls: 0, fours: 0, sixes: 0, dismissal: 'dnb', sr: '' },
+            ],
+            bowlers: [
+              { name: 'emilylei981', overs: 4.0, maidens: 0, runs: 68, wkts: 4, econ: '17.00' },
+              { name: 'sujay', overs: 3.3, maidens: 0, runs: 67, wkts: 3, econ: '19.14' },
+              { name: 'mick_056', overs: 3.0, maidens: 0, runs: 54, wkts: 2, econ: '18.00' },
+              { name: 'arjsoh', overs: 0.2, maidens: 0, runs: 1, wkts: 1, econ: '3.00' },
+              { name: 'kdb177', overs: 2.0, maidens: 0, runs: 33, wkts: 1, econ: '16.50' },
+              { name: 'nick01311', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'nervous_pizza1078', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'light_6921', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'og1lucky', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'zenixyt77', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'ionizedinferno', overs: 1.3, maidens: 0, runs: 31, wkts: 0, econ: '20.67' },
+            ],
+            fow: [], extras: 42, total: '254/11', overs: '14.2',
+          },
+          {
+            battingTeam: 'Dead Poets Society',
+            bowlingTeam: 'Brexit Ballers CC',
+            batsmen: [
+              { name: 'kdb177', runs: 68, balls: 19, fours: 0, sixes: 0, dismissal: 'not out', sr: '357.89' },
+              { name: 'og1lucky', runs: 55, balls: 18, fours: 0, sixes: 0, dismissal: 'caught', sr: '305.56' },
+              { name: 'mick_056', runs: 35, balls: 12, fours: 0, sixes: 0, dismissal: 'bowled', sr: '291.67' },
+              { name: 'emilylei981', runs: 26, balls: 11, fours: 0, sixes: 0, dismissal: 'caught', sr: '236.36' },
+              { name: 'ionizedinferno', runs: 23, balls: 10, fours: 0, sixes: 0, dismissal: 'bowled', sr: '230.00' },
+              { name: 'zenixyt77', runs: 22, balls: 5, fours: 0, sixes: 0, dismissal: 'caught', sr: '440.00' },
+              { name: 'light_6921', runs: 11, balls: 3, fours: 0, sixes: 0, dismissal: 'bowled', sr: '366.67' },
+              { name: 'sujay', runs: 8, balls: 3, fours: 0, sixes: 0, dismissal: 'bowled', sr: '266.67' },
+              { name: 'nick01311', runs: 8, balls: 5, fours: 0, sixes: 0, dismissal: 'run out', sr: '160.00' },
+              { name: 'nervous_pizza1078', runs: 3, balls: 2, fours: 0, sixes: 0, dismissal: 'bowled', sr: '150.00' },
+              { name: 'arjsoh', runs: 0, balls: 1, fours: 0, sixes: 0, dismissal: 'bowled', sr: '0.00' },
+            ],
+            bowlers: [
+              { name: 'stevenstrangeee', overs: 3.0, maidens: 0, runs: 45, wkts: 3, econ: '15.00' },
+              { name: '.ninja.', overs: 2.0, maidens: 0, runs: 43, wkts: 2, econ: '21.50' },
+              { name: 'akashjaiswal4', overs: 1.0, maidens: 0, runs: 18, wkts: 1, econ: '18.00' },
+              { name: 'nota.poet', overs: 1.0, maidens: 0, runs: 20, wkts: 1, econ: '20.00' },
+              { name: 'ujjxyz', overs: 2.0, maidens: 0, runs: 23, wkts: 1, econ: '11.50' },
+              { name: 'conquerorisback*', overs: 2.0, maidens: 0, runs: 32, wkts: 1, econ: '16.00' },
+              { name: 'cryingb4by', overs: 1.5, maidens: 0, runs: 38, wkts: 1, econ: '20.73' },
+              { name: 'dollcleen', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'kakashi_28.', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'devdoot_26', overs: 1.0, maidens: 0, runs: 19, wkts: 0, econ: '19.00' },
+              { name: 'yoyibs', overs: 1.0, maidens: 0, runs: 21, wkts: 0, econ: '21.00' },
+            ],
+            fow: [], extras: 0, total: '259/10', overs: '14.5',
+          }
+        ]
+      });
+      saveData();
+    }
+
+    function seedMatch2() {
+      data.matches.push({
+        date: '2026-07-13', venue: '', opponent: 'The Assassins', tournament: 'Markhors',
+        result: 'Dead Poets Society won the game by 49 runs.',
+        potm: 'sujay',
+        innings: [
+          {
+            battingTeam: 'Dead Poets Society',
+            bowlingTeam: 'The Assassins',
+            batsmen: [
+              { name: 'nervous_pizza1078', runs: 46, balls: 14, fours: 0, sixes: 0, dismissal: 'caught', sr: '328.57' },
+              { name: 'light_6921', runs: 42, balls: 9, fours: 0, sixes: 0, dismissal: 'bowled', sr: '466.67' },
+              { name: 'kdb177', runs: 31, balls: 12, fours: 0, sixes: 0, dismissal: 'caught', sr: '258.33' },
+              { name: 'ionizedinferno', runs: 17, balls: 10, fours: 0, sixes: 0, dismissal: 'bowled', sr: '170.00' },
+              { name: 'sujay', runs: 11, balls: 3, fours: 0, sixes: 0, dismissal: 'bowled', sr: '366.67' },
+              { name: 'mick_056', runs: 11, balls: 5, fours: 0, sixes: 0, dismissal: 'run out', sr: '220.00' },
+              { name: 'emilylei981', runs: 8, balls: 4, fours: 0, sixes: 0, dismissal: 'caught', sr: '200.00' },
+              { name: 'shyam.ly', runs: 7, balls: 5, fours: 0, sixes: 0, dismissal: 'bowled', sr: '140.00' },
+              { name: 'arjsoh', runs: 2, balls: 2, fours: 0, sixes: 0, dismissal: 'bowled', sr: '100.00' },
+              { name: 'nick01311', runs: 1, balls: 2, fours: 0, sixes: 0, dismissal: 'lbw', sr: '50.00' },
+              { name: 'og1lucky', runs: 0, balls: 1, fours: 0, sixes: 0, dismissal: 'bowled', sr: '0.00' },
+            ],
+            bowlers: [
+              { name: 'murtaza_sntl', overs: 3.0, maidens: 0, runs: 33, wkts: 5, econ: '11.00' },
+              { name: 'tedisnothim', overs: 4.0, maidens: 0, runs: 50, wkts: 4, econ: '12.50' },
+              { name: 'marinefishes', overs: 2.0, maidens: 0, runs: 42, wkts: 1, econ: '21.00' },
+              { name: '0______________', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'tanujgamer10', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'venom__x7', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: '.ahmeddx.', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'dripgod5170', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'sahej2710', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'toluene__', overs: 1.0, maidens: 0, runs: 19, wkts: 0, econ: '19.00' },
+              { name: 'hoiyah08', overs: 1.0, maidens: 0, runs: 32, wkts: 0, econ: '32.00' },
+            ],
+            fow: [], extras: 0, total: '176/11', overs: '11.1',
+          },
+          {
+            battingTeam: 'The Assassins',
+            bowlingTeam: 'Dead Poets Society',
+            batsmen: [
+              { name: 'hoiyah08', runs: 34, balls: 11, fours: 0, sixes: 0, dismissal: 'caught', sr: '309.09' },
+              { name: '.ahmeddx.', runs: 18, balls: 7, fours: 0, sixes: 0, dismissal: 'bowled', sr: '257.14' },
+              { name: 'dripgod5170', runs: 17, balls: 5, fours: 0, sixes: 0, dismissal: 'caught', sr: '340.00' },
+              { name: 'murtaza_sntl', runs: 17, balls: 7, fours: 0, sixes: 0, dismissal: 'bowled', sr: '242.86' },
+              { name: 'tedisnothim*', runs: 14, balls: 5, fours: 0, sixes: 0, dismissal: 'bowled', sr: '280.00' },
+              { name: 'venom__x7', runs: 10, balls: 6, fours: 0, sixes: 0, dismissal: 'caught', sr: '166.67' },
+              { name: 'marinefishes', runs: 7, balls: 4, fours: 0, sixes: 0, dismissal: 'bowled', sr: '175.00' },
+              { name: '0______________', runs: 5, balls: 3, fours: 0, sixes: 0, dismissal: 'lbw', sr: '166.67' },
+              { name: 'tanujgamer10', runs: 4, balls: 2, fours: 0, sixes: 0, dismissal: 'bowled', sr: '200.00' },
+              { name: 'toluene__', runs: 1, balls: 2, fours: 0, sixes: 0, dismissal: 'bowled', sr: '50.00' },
+              { name: 'sahej2710', runs: 0, balls: 1, fours: 0, sixes: 0, dismissal: 'bowled', sr: '0.00' },
+            ],
+            bowlers: [
+              { name: 'sujay', overs: 4.0, maidens: 0, runs: 53, wkts: 6, econ: '13.25' },
+              { name: 'kdb177', overs: 3.0, maidens: 0, runs: 40, wkts: 4, econ: '13.33' },
+              { name: 'emilylei981', overs: 0.5, maidens: 0, runs: 15, wkts: 1, econ: '18.00' },
+              { name: 'arjsoh', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'light_6921', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'og1lucky', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'nervous_pizza1078', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'shyam.ly', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'nick01311', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'ionizedinferno', overs: 0, maidens: 0, runs: 0, wkts: 0, econ: '' },
+              { name: 'mick_056', overs: 1.0, maidens: 0, runs: 19, wkts: 0, econ: '19.00' },
+            ],
+            fow: [], extras: 0, total: '127/11', overs: '8.5',
+          }
+        ]
+      });
+      saveData();
+    }
+  </script>
+</body>
+</html>
