@@ -1,0 +1,263 @@
+================================================================================
+  DEAD POETS SOCIETY — DEPLOYMENT GUIDE
+  Deploying to Vercel with Discord Auth + PostgreSQL
+================================================================================
+
+This guide covers everything needed to take the website from local dev to
+production. Follow the sections in order.
+
+
+================================================================================
+SECTION 1 — OAuth App Setup
+================================================================================
+
+--- Discord OAuth App Setup (5 minutes) ---
+
+1. Go to https://discord.com/developers/applications
+2. Click "New Application" → name it "Dead Poets Society"
+3. Go to "OAuth2 > General" in the left sidebar
+4. Copy the "CLIENT ID" — save it somewhere
+5. Click "Reset Secret" — copy the "CLIENT SECRET" — save it
+6. Under "Redirects", click "Add Redirect" and add these two URLs
+   (one at a time):
+
+     http://localhost:3000/api/auth/callback/discord
+     https://YOUR_PROJECT.vercel.app/api/auth/callback/discord
+
+7. Save Changes
+
+8. Open Discord app → Settings → Advanced → enable Developer Mode
+9. Right-click your own username → "Copy ID" → save it
+10. Right-click your captain's username → "Copy ID" → save it
+    (these go into ADMIN_DISCORD_IDS later if you use ID-based admin checking)
+
+--- Google OAuth App Setup (5 minutes) ---
+
+1. Go to https://console.cloud.google.com/apis/credentials
+2. Create a project (e.g. "Dead Poets Society")
+3. Go to "OAuth consent screen" → configure as External
+4. Add your email as a test user
+5. Go to "Credentials" → "Create Credentials" → "OAuth client ID"
+6. Choose "Web application"
+7. Under "Authorized redirect URIs", add these two URLs
+   (one at a time):
+
+     http://localhost:3000/api/auth/callback/google
+     https://YOUR_PROJECT.vercel.app/api/auth/callback/google
+
+8. Click "Create" — copy the "Client ID" and "Client Secret"
+9. Save these as GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+
+
+================================================================================
+SECTION 2 — PostgreSQL Database Setup (5 minutes)
+================================================================================
+
+We use Neon (serverless PostgreSQL, free tier hosted for Vercel).
+
+1. Go to https://neon.tech
+2. Sign up with GitHub (free)
+3. Click "Create Project"
+   - Name: "dead-poets-society"
+   - Region: pick one close to you
+4. Wait for it to provision → you get a connection string like:
+     postgresql://user:pass@ep-xxx.us-east-2.aws.neon.tech/dbname?sslmode=require
+5. Copy this connection string — save it as DATABASE_URL
+
+
+================================================================================
+SECTION 3 — GitHub Repo Setup (5 minutes)
+================================================================================
+
+1. Go to https://github.com and sign in
+2. Click "+" → "New repository"
+   - Name: "dead-poets-society"
+   - Private (NOT public)
+   - Do NOT add README/gitignore/license
+3. In your local project folder, run:
+
+     git init
+     git add .
+     git commit -m "initial commit"
+     git branch -M main
+     git remote add origin https://github.com/YOUR_USER/dead-poets-society.git
+     git push -u origin main
+
+   (Replace YOUR_USER with your GitHub username)
+
+
+================================================================================
+SECTION 4 — Vercel Project Setup (10 minutes)
+================================================================================
+
+1. Go to https://vercel.com and sign up with GitHub
+2. Click "Add New > Project"
+3. Find and import your "dead-poets-society" repo
+4. Framework preset should auto-detect "Next.js"
+5. Click "Deploy" — the first deploy will fail (expected, no database yet)
+6. Once created, go to your project dashboard
+7. Click "Settings > Environment Variables"
+8. Add these variables:
+
+   Name: DATABASE_URL
+   Value: (paste from Neon)
+
+   Name: DISCORD_CLIENT_ID
+   Value: (paste from Discord)
+
+   Name: DISCORD_CLIENT_SECRET
+   Value: (paste from Discord)
+
+   Name: NEXTAUTH_SECRET
+   Value: (generate by running: openssl rand -base64 32)
+
+   Name: NEXTAUTH_URL
+   Value: https://YOUR_PROJECT.vercel.app
+
+   Name: ADMIN_DISCORD_IDS
+   Value: your_discord_id,captains_discord_id (comma-separated, no spaces)
+
+   Name: ADMIN_PIN
+   Value: (choose a fallback PIN for local dev)
+
+9. Go to "Deployments" → find the failed deploy → "Redeploy"
+
+
+================================================================================
+SECTION 5 — Database Migration & Seed (after first deploy)
+================================================================================
+
+After the code is deployed, you need to create the database tables and seed data.
+
+Option A — Via Vercel CLI (recommended):
+
+  1. Install Vercel CLI: npm i -g vercel
+  2. Run: vercel link (link to your project)
+  3. Pull env vars: vercel env pull
+  4. Run migrations: npx prisma migrate deploy
+  5. Run seed: npx tsx prisma/seed.ts
+
+Option B — Via Vercel Dashboard:
+
+  1. Go to your project on Vercel
+  2. "Settings > General" → find the "Build Command" section
+  3. Set Build Command to: npx prisma migrate deploy && next build
+  4. Add a "Post-Build Command": npx tsx prisma/seed.ts
+  5. Redeploy
+
+
+================================================================================
+SECTION 6 — What the Login Flow Looks Like
+================================================================================
+
+- Any visitor can view all stats pages (Players, Matches, Squad, etc.)
+  without signing in.
+
+- Clicking "Manage" (or navigating to /manage) triggers Discord login.
+  The user is redirected to a sign-in page with a "Sign in with Discord"
+  button.
+
+- Discord asks: "Authorize Dead Poets Society?" → user clicks Approve.
+
+- The app checks their Discord ID against ADMIN_DISCORD_IDS.
+  - If matched → they see the Manage page (import/export/clear).
+  - If not matched → they see "You don't have access" message.
+
+- Once signed in, the navbar shows a "Sign Out" button instead of Manage.
+
+
+================================================================================
+SECTION 7 — Updating Match Data (Ongoing Workflow)
+================================================================================
+
+1. You share match stats in this chat
+2. I update the code / seed file
+3. You git commit and push:
+
+     git add .
+     git commit -m "add match vs Opponent"
+     git push
+
+4. Vercel auto-deploys the update
+5. If seed data changed, run seed on Vercel
+
+To run seed on Vercel:
+   vercel env pull
+   npx tsx prisma/seed.ts
+
+Or set a one-time build command to run seed.
+
+
+================================================================================
+SECTION 8 — Env Variables Reference
+================================================================================
+
+All variables to set in Vercel dashboard (Settings > Environment Variables):
+
+  DATABASE_URL          = PostgreSQL connection string from Neon
+  DISCORD_CLIENT_ID     = From Discord OAuth app
+  DISCORD_CLIENT_SECRET = From Discord OAuth app
+  GOOGLE_CLIENT_ID      = From Google Cloud Console OAuth
+  GOOGLE_CLIENT_SECRET  = From Google Cloud Console OAuth
+  NEXTAUTH_SECRET       = Random string for session encryption
+  NEXTAUTH_URL          = https://your-project.vercel.app
+  TEAM_PASSWORD         = Shared password for username+password login
+  ADMIN_PIN             = Fallback PIN for local dev (keeps old auth working)
+
+
+================================================================================
+SECTION 9 — Files Changed/Added for Deployment
+================================================================================
+
+NEW FILES:
+  src/app/api/auth/[...nextauth]/route.ts   — NextAuth handler
+  src/app/api/auth/link/route.ts            — Player-username linking API
+  src/app/auth/signin/page.tsx              — Login page UI (your design)
+  src/app/auth/link/page.tsx                — Player-username linking page
+  src/proxy.ts                              — Protects /manage (Next.js 16 proxy)
+  src/components/AuthProvider.tsx            — SessionProvider wrapper
+  src/types/next-auth.d.ts                  — Session type augmentation
+  .env                                      — Local env vars
+
+MODIFIED FILES:
+  prisma/schema.prisma                      — PostgreSQL + User/Account/Session models
+  src/lib/auth.ts                           — NextAuth config + session+PIN requireAdmin
+  src/app/layout.tsx                        — Wrap with AuthProvider
+  src/components/NavBar.tsx                 — Sign In / Sign Out buttons
+  src/app/manage/page.tsx                   — Shows signed-in username
+  src/components/ManageData.tsx             — Auth-agnostic (session cookie handles auth)
+  src/app/api/data/import/route.ts          — requireAdmin now async (session check)
+  src/app/api/data/clear/route.ts           — requireAdmin now async (session check)
+  src/app/api/matches/[id]/route.ts         — requireAdmin now async (session check)
+  WEBSITE_DOCUMENTATION.txt                 — Updated for deploy
+
+REMOVED (replaced):
+  src/middleware.ts → renamed to src/proxy.ts (Next.js 16 convention)
+
+
+================================================================================
+SECTION 10 — Troubleshooting
+================================================================================
+
+"Can't reach database" on Vercel:
+  → Check DATABASE_URL is set correctly in env vars
+  → Neon free tier pauses after inactivity — visit Neon dashboard to unpause
+
+"Discord / Google login returns error"
+  → Check redirect URLs match exactly (no trailing slash)
+  → Check CLIENT_ID and CLIENT_SECRET are correct
+  → For Google: ensure the email used is added as a test user
+
+"Migration fails"
+  → Run npx prisma migrate dev locally first
+  → Commit the generated migration folder
+
+"Seed fails"
+  → Make sure DATABASE_URL is set and migrations ran
+  → Run: npx prisma db push  (if migrate didn't work)
+  → Run: npx tsx prisma/seed.ts
+
+"You don't have access" after Discord login
+  → Check your Discord ID is correct in ADMIN_DISCORD_IDS
+  → IDs are case-sensitive, no spaces around commas
+================================================================================

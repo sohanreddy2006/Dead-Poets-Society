@@ -1,0 +1,297 @@
+================================================================================
+  DEAD POETS SOCIETY — CRICKET SCORECARD TRACKER
+  Website Documentation
+================================================================================
+
+TECH STACK:
+  - Next.js 16.2.10 (App Router)
+  - React 19.2.4, TypeScript
+  - Prisma 5.22.0 + PostgreSQL (Neon)
+  - Tailwind CSS v4
+  - NextAuth.js v4 with Prisma Adapter
+
+URL (Production): https://dead-poets-society.vercel.app
+URL (Local):      http://localhost:3000
+Database:         Neon (serverless PostgreSQL)
+
+================================================================================
+AUTHENTICATION
+================================================================================
+
+Three sign-in methods:
+  1. Team Password — Enter any player username + shared TEAM_PASSWORD
+  2. Discord OAuth — Click the Discord icon
+  3. Google OAuth — Click the Google icon
+
+Flow:
+  - Stats pages are public (no auth required)
+  - /manage is protected by proxy.ts middleware — redirects to /auth/signin
+  - First-time OAuth users enter their player username on /auth/link
+    to link their Discord/Google identity to a Player record
+  - After linking, subsequent OAuth logins auto-authenticate
+  - The credentials flow (username + password) auto-creates a linked User
+  - Old PIN-based auth (x-admin-pin header) kept as fallback for API routes
+  - "Sign Out" / "Sign In" appears in the navbar
+  - Signed-in users see their player username on /manage
+
+Auth files:
+  - src/lib/auth.ts           — NextAuth config + requireAdmin helper
+  - src/app/api/auth/[...nextauth]/route.ts — Auth route handler
+  - src/app/auth/signin/page.tsx — Login page UI
+  - src/app/auth/link/page.tsx — Player-username linking page
+  - src/app/api/auth/link/route.ts — Link API
+  - src/proxy.ts               — Middleware protecting /manage
+  - src/components/AuthProvider.tsx — Session provider wrapper
+  - src/types/next-auth.d.ts   — Session type augmentation
+
+================================================================================
+NAVIGATION
+================================================================================
+
+The top navbar has 6 public links + Sign Out (shown when logged in):
+
+  1. Player Stats    → /players
+  2. Match Summary   → /matches
+  3. Squad           → /squad
+  4. Leaderboards    → /leaderboards
+  5. Summary         → /summary
+  6. Compare         → /compare
+
+The /manage page is only accessible to authenticated admins. Non-admins
+who navigate there see "You don't have access."
+
+The root URL (/) redirects to /players.
+
+================================================================================
+TOURNAMENT FILTER (Global)
+================================================================================
+
+A dropdown at the top of most pages lets you filter data by tournament
+("All Tournaments", "Markhors", "Saste Nukers"). It updates the URL search
+param (?tournament=Markhors). All data on the page re-fetches accordingly.
+
+Supported on: Player Stats, Match Summary, Squad, Leaderboards, Summary, Compare.
+
+================================================================================
+FEATURE 1 — Player Stats (/players)
+================================================================================
+
+An autocomplete search over the 18-player roster. When a player is selected:
+
+  - Player heading shows their Role (Batter / Bowler / All-Rounder)
+    with color-coded pill (gold = BAT, teal = BWL, purple = AR)
+  - Donut chart showing batting/bowling/POTM impact breakdown
+  - Form strip: bar chart of last 6 batting innings
+  - Season activity heatmap (calendar grid)
+  - 12 stat cards in a grid:
+      Runs | Balls | Bat Avg | Strike Rate
+      Wickets | Overs | Economy | Bowl Avg
+      3-fers | 5-fers | POTM | Impact Score
+  - Impact Score is highlighted with a gold border
+  - Match-by-match table showing per-game batting and bowling
+    (DNB = Did Not Bat, — = no bowling data)
+
+Formula: Impact = (Runs × SR/100) + (Wkts × 25) + (POTM × 30)
+
+================================================================================
+FEATURE 2 — Match Summary (/matches)
+================================================================================
+
+Two-column layout: match list sidebar + scorecard view.
+
+Sidebar:
+  - Search bar to filter matches by opponent, date, or tournament
+  - Scrollable match list with active match highlighted (gold left border)
+  - Each row shows match number, opponent, date, result, tournament tag
+  - Preselects the most recent match on load
+
+Scorecard:
+  - Header with match number, opponent, and venue
+  - Each innings shows team name, total, overs
+  - Two columns: Batting (gold values) and Bowling (teal values)
+  - DNB entries shown in italic muted
+  - MVP star (★) shown only next to the actual POTM player
+  - Result banner with gradient background
+  - POTM name displayed in result footer
+
+================================================================================
+FEATURE 3 — Squad (/squad)
+================================================================================
+
+A table of all 18 roster players with aggregate stats:
+
+  Player (with Role pill) | Runs | Bat Avg | SR | Wkts | Econ | Bowl Avg | 3-fers | 5-fers | POTM | Matches
+
+  - Role pills color-coded: BAT (gold), BWL (teal), AR (purple)
+  - Top runs value highlighted in gold
+  - Bowling stats shown in teal
+  - Dashes for unavailable stats
+  - Alternate row striping
+  - Hover highlight
+  - Filter toggle pills to show only BAT / BWL / AR or combinations
+
+The roster (18 players):
+  kdb177 (AR)       arjsoh (BAT)        mick_056 (AR)
+  nick01311 (BAT)   xtzgamer24 (AR)     xenomphanes (AR)
+  sujay (BWL)       zenixyt77 (BAT)     og1lucky (BAT)
+  emilylei981 (AR)  light_6921 (BAT)    1blonde (BAT)
+  shyam.ly (BAT)    khushal0__0 (BWL)   nervous_pizza1078 (BAT)
+  vs_reddy12 (AR)   isagi_17 (BWL)      milkshaikh0292 (AR)
+
+================================================================================
+FEATURE 4 — Leaderboards (/leaderboards)
+================================================================================
+
+Top 6 rankings across 12 categories in a 3-column grid:
+
+  Batting (gold accent):
+    1. Most Runs
+    2. Best Batting Average
+    3. Best Strike Rate
+    4. Most 50s
+
+  Bowling (teal accent):
+    5. Most Wickets
+    6. Best Bowling Average
+    7. Best Economy Rate
+    8. Best Bowling SR
+    9. Most 3-fers
+   10. Most 5-fers
+
+  Others (purple accent):
+   11. Highest Impact Score
+   12. Most POTM
+
+Each card shows top 6 players with rank, name, proportional bar, and value.
+Filter toggle pills (BAT / BWL / OTH) show/hide entire categories.
+Respects tournament filter.
+
+Qualifications:
+  - Bat Avg / SR: minimum 30 balls faced
+  - Bowling: minimum 30 balls bowled
+  - Bowl Avg / Bowl SR: minimum 5 wickets
+
+================================================================================
+FEATURE 5 — Tournament Summary (/summary)
+================================================================================
+
+Select a tournament from the filter to see an overview. Filter toggle
+(All / Batting / Bowling) shows/hides stat boards.
+
+  - W/L donut chart (conic gradient) with Played / Won / Lost / Win rate %
+  - Stat cards: Won, Lost, Win rate
+
+  Batting boards (gold accent):
+    - Highest Scores (top 3 innings)
+    - Most Runs (top 3 cumulative)
+    - Most 50s
+
+  Bowling boards (teal accent):
+    - Best Bowling Figures (top 3 innings)
+    - Most Wickets (top 3 cumulative)
+    - Most 3-fers / 5-fers (combined)
+
+  Team of the Tournament:
+    - Expandable <details> rows with rank, name, role pill, chevron
+    - Expanded row shows auto-generated stat summary
+    - Configurable in src/lib/team-of-tournament.ts
+
+================================================================================
+FEATURE 6 — Compare Players (/compare)
+================================================================================
+
+Side-by-side player comparison tool:
+
+  - Tournament filter dropdown
+  - Search for a player and optionally scope to a tournament
+  - Add players as "chips" — color-coded (gold / teal / purple cycling)
+  - When 2+ players are selected, a radar pentagon chart appears
+    (axes: Runs, SR, Wkts, Impact, Econ — econ inverted)
+  - Comparison table with 11 metrics:
+      Runs, Bat Avg, SR, Wkts, Econ, Bowl Avg, Bowl SR,
+      3-fers, 5-fers, POTM, Impact
+  - Best value in each row highlighted in gold with background tint
+  - Colored header columns matching chip colors
+  - URL state synced via ?players=name1,name2&tournament=...
+
+================================================================================
+FEATURE 7 — Manage Data (/manage)
+================================================================================
+
+Protected by Discord OAuth — only admins (vice-captain + captain) can access.
+
+Three buttons for data administration:
+
+  - Export JSON: Downloads all matches as JSON backup
+  - Import: Select a .json file to replace all database data
+    (auto-downloads backup before import)
+  - Clear All: Deletes all data from the database
+    (auto-downloads backup before clearing, with confirmation)
+
+Each action shows a toast notification (green success / red error).
+Non-admin users see "You don't have access" message.
+
+================================================================================
+ADDITIONAL FEATURES
+================================================================================
+
+  - Delete Match: Individual match deletion from Match Summary page
+    (DELETE /api/matches/:id, with confirmation + PIN/session auth)
+  - DNB/DNP Handling: Players who did not bat/bowl are excluded from
+    averages and shown as DNB in italic in scorecards
+  - 3-fers vs 5-fers: Mutually exclusive — a 5-wicket haul does NOT
+    count as a 3-fer
+  - Player Roles: Each player has a role (Batter / Bowler / All-Rounder)
+    color-coded across all pages (gold/teal/purple)
+  - Roles fetched from DB with hardcoded fallback (ROLES map in stats.ts)
+
+================================================================================
+API ENDPOINTS
+================================================================================
+
+  GET  /api/data/export[?tournament=X]  → Export all matches as JSON
+  POST /api/data/import                  → Import matches from JSON (admin)
+  DELETE /api/data/clear                 → Clear all database data (admin)
+  GET  /api/matches[?tournament=X]       → Fetch matches
+  DELETE /api/matches/[id]               → Delete a single match (admin)
+  GET  /api/players                      → Fetch all roster players
+  GET  /api/players/[name]               → Fetch single player stats
+  POST /api/auth/link                    → Link current User to a Player username
+
+Admin endpoints (import, clear, delete) check session first
+(session.user.playerId must be set), with PIN-based fallback
+(x-admin-pin header) for local development.
+
+================================================================================
+DATABASE (Prisma + PostgreSQL)
+================================================================================
+
+10 models (7 app + 3 auth):
+
+  User             → id, name, email, emailVerified, image, playerId (-> Player)
+  Player           → id, username, displayName, role, isRosterPlayer, user (<- User)
+  Match            → id, matchNumber, date, venue, opponent, tournament, result, potm, deletedAt
+  Inning           → id, matchId, battingTeam, bowlingTeam, total, overs, extras
+  BattingEntry     → id, inningId, playerId, name, runs, balls, fours, sixes, dismissal, sr
+  BowlingEntry     → id, inningId, playerId, name, overs, maidens, runs, wkts, econ
+  Account          → NextAuth — linked to User
+  Session          → NextAuth — linked to User
+  VerificationToken → NextAuth — email verification
+
+Seeded with 15 matches:
+  - 6 Markhors matches (DPS won 5/6)
+  - 9 Saste Nukers matches (DPS won 4/9 — W/L overridden to 4W/6L)
+
+Seed command: npx tsx prisma/seed.ts
+Migration:    npx prisma migrate deploy
+
+================================================================================
+DEPLOYMENT
+================================================================================
+
+Platform: Vercel (free tier)
+Database: Neon (free tier PostgreSQL)
+Auth:     Discord OAuth via NextAuth.js
+
+See DEPLOYMENT_GUIDE.txt for full step-by-step instructions.
+================================================================================
