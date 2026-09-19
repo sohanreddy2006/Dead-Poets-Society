@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 
-const ROSTER_SIZE = 25
+const ROSTER_SIZE = 26
 
 function SignInForm() {
   const sp = useSearchParams()
@@ -18,7 +18,7 @@ function SignInForm() {
       .then(r => r.json())
       .then(data => {
         const matches = data.matches ?? []
-        const roster = new Set(["kdb177","arjsoh","mick_056","nick01311","xtzgamer24","xenomphanes","sujay","zenixyt77","og1lucky","emilylei981","light_6921","1blonde","shyam.ly","khushal0__0","nervous_pizza1078","vs_reddy12","isagi_17","milkshaikh0292","vishwamispro0556","rooniyck","18bat","chaosbyme","deep.","naatilevade","johtooooo"])
+        const roster = new Set(["kdb177","arjsoh","mick_056","nick01311","xtzgamer24","xenomphanes","sujay","zenixyt77","og1lucky","emilylei981","light_6921","1blonde","shyam.ly","khushal0__0","nervous_pizza1078","vs_reddy12","isagi_17","milkshaikh0292","vishwamispro0556","rooniyck","18bat","chaosbyme","deep.","naatilevade","johtooooo","deep___-___"])
         const batTotals: Record<string, number> = {}
         const tournamentSet = new Set<string>()
         for (const m of matches) {
