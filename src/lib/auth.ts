@@ -1,7 +1,6 @@
 import { NextAuthOptions, getServerSession } from "next-auth"
 import { NextResponse } from "next/server"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import DiscordProvider from "next-auth/providers/discord"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 
@@ -43,38 +42,8 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
-    ...(process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET
-      ? [DiscordProvider({
-          clientId: process.env.DISCORD_CLIENT_ID,
-          clientSecret: process.env.DISCORD_CLIENT_SECRET,
-        })]
-      : []),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === "discord") {
-        const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
-        if (dbUser && !dbUser.playerId) {
-          const discordUsername = (profile as any)?.username
-          if (discordUsername) {
-            const player = await prisma.player.findUnique({
-              where: { username: discordUsername.toLowerCase() },
-            })
-            if (player) {
-              await prisma.user.update({
-                where: { id: user.id },
-                data: { playerId: player.id, name: player.username },
-              })
-            } else {
-              return "/auth/signin?error=PlayerNotFound"
-            }
-          } else {
-            return "/auth/signin?error=PlayerNotFound"
-          }
-        }
-      }
-      return true
-    },
     async jwt({ token, user }) {
       if (user) {
         const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
