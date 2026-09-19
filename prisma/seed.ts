@@ -22,6 +22,7 @@ async function main() {
     { username: 'vs_reddy12', displayName: 'vs_reddy12', role: 'All-Rounder', isRosterPlayer: true },
     { username: 'isagi_17', displayName: 'isagi_17', role: 'Bowler', isRosterPlayer: true },
     { username: 'milkshaikh0292', displayName: 'milkshaikh0292', role: 'All-Rounder', isRosterPlayer: true },
+    { username: 'johtooooo', displayName: 'johtooooo', role: 'All-Rounder', isRosterPlayer: true },
   ]
   for (const p of playerData) {
     await prisma.player.upsert({
@@ -30,7 +31,7 @@ async function main() {
       create: p,
     })
   }
-  console.log('Seeded 18 roster players.')
+  console.log('Seeded 19 roster players.')
   const match1 = await prisma.match.findFirst({ where: { opponent: 'Brexit Ballers CC' } })
   if (!match1) {
     await prisma.match.create({
@@ -2337,72 +2338,6 @@ async function main() {
       where: { opponent, tournament: 'Saste Nukers' },
       data: { matchNumber: num },
     })
-  }
-
-  const bfPlaceholder = await prisma.match.findFirst({ where: { tournament: 'Blue Forge' } })
-  if (!bfPlaceholder) {
-    await prisma.match.create({
-      data: {
-        date: '2026-09-10',
-        venue: '',
-        opponent: 'TBD',
-        tournament: 'Blue Forge',
-        result: 'TBD',
-        potm: 'TBD',
-        innings: {
-          create: [
-            {
-              battingTeam: 'Dead Poets Society',
-              bowlingTeam: 'TBD',
-              total: '0/0', overs: '0.0', extras: 0,
-              batsmen: { create: [{ name: 'kdb177', runs: 0, balls: 0, dismissal: 'dnb', sr: '' }] },
-              bowlers: { create: [{ name: 'sujay', overs: 0, runs: 0, wkts: 0, econ: '' }] },
-            },
-            {
-              battingTeam: 'TBD',
-              bowlingTeam: 'Dead Poets Society',
-              total: '0/0', overs: '0.0', extras: 0,
-              batsmen: { create: [{ name: 'sujay', runs: 0, balls: 0, dismissal: 'dnb', sr: '' }] },
-              bowlers: { create: [{ name: 'kdb177', overs: 0, runs: 0, wkts: 0, econ: '' }] },
-            },
-          ],
-        },
-      },
-    })
-    console.log('Seeded Blue Forge placeholder.')
-  }
-
-  const hcmlPlaceholder = await prisma.match.findFirst({ where: { tournament: 'HCML S2' } })
-  if (!hcmlPlaceholder) {
-    await prisma.match.create({
-      data: {
-        date: '2026-09-10',
-        venue: '',
-        opponent: 'TBD',
-        tournament: 'HCML S2',
-        result: 'TBD',
-        potm: 'TBD',
-        innings: {
-          create: [
-            {
-              battingTeam: 'Dead Poets Society',
-              bowlingTeam: 'TBD',
-              total: '0/0', overs: '0.0', extras: 0,
-              batsmen: { create: [{ name: 'kdb177', runs: 0, balls: 0, dismissal: 'dnb', sr: '' }] },
-              bowlers: { create: [{ name: 'sujay', overs: 0, runs: 0, wkts: 0, econ: '' }] },
-            },
-            {
-              battingTeam: 'TBD',
-              bowlingTeam: 'Dead Poets Society',
-              total: '0/0', overs: '0.0', extras: 0,
-              batsmen: { create: [{ name: 'sujay', runs: 0, balls: 0, dismissal: 'dnb', sr: '' }] },
-              bowlers: { create: [{ name: 'kdb177', overs: 0, runs: 0, wkts: 0, econ: '' }] },
-            },
-          ],
-        },
-      },
-    })
-    console.log('Seeded HCML S2 placeholder.')
   }
 
   const matchBF1 = await prisma.match.findFirst({ where: { opponent: 'HCK14', tournament: 'Blue Forge' } })

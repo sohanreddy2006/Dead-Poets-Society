@@ -1,7 +1,7 @@
 import useSWR from 'swr'
 import type { MatchData } from './stats'
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then(r => r.json())
 
 export function useMatches(tournament?: string) {
   const { data: all, isLoading } = useSWR('/api/data/export', fetcher)

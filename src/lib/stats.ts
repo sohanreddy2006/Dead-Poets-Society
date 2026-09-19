@@ -9,6 +9,7 @@ export const TEAM_ROSTER = [
   'vishwamispro0556', 'rooniyck',
   '18bat', 'chaosbyme',
   'deep.', 'naatilevade',
+  'johtooooo',
 ] as const
 export const ROLES: Record<string, string> = {
   kdb177: 'All-Rounder',
@@ -35,6 +36,7 @@ export const ROLES: Record<string, string> = {
   chaosbyme: 'All-Rounder',
   'deep.': 'All-Rounder',
   naatilevade: 'All-Rounder',
+  johtooooo: 'All-Rounder',
 }
 
 export interface PlayerEntry {

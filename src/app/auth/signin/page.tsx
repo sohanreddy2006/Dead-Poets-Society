@@ -1,13 +1,45 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
+
+const ROSTER_SIZE = 25
 
 function SignInForm() {
   const sp = useSearchParams()
   const error = sp.get("error")
   const cb = sp.get("callbackUrl") || "/players"
+
+  const [preview, setPreview] = useState<{ topRuns: { name: string; runs: number }[]; matches: number; tournaments: number } | null>(null)
+
+  useEffect(() => {
+    fetch("/api/data/export")
+      .then(r => r.json())
+      .then(data => {
+        const matches = data.matches ?? []
+        const roster = new Set(["kdb177","arjsoh","mick_056","nick01311","xtzgamer24","xenomphanes","sujay","zenixyt77","og1lucky","emilylei981","light_6921","1blonde","shyam.ly","khushal0__0","nervous_pizza1078","vs_reddy12","isagi_17","milkshaikh0292","vishwamispro0556","rooniyck","18bat","chaosbyme","deep.","naatilevade","johtooooo"])
+        const batTotals: Record<string, number> = {}
+        const tournamentSet = new Set<string>()
+        for (const m of matches) {
+          if (m.tournament) tournamentSet.add(m.tournament)
+          for (const inn of m.innings ?? []) {
+            for (const b of inn.batsmen ?? []) {
+              batTotals[b.name] = (batTotals[b.name] || 0) + b.runs
+            }
+            for (const b of inn.bowlers ?? []) {
+            }
+          }
+        }
+        const topRuns = Object.entries(batTotals)
+          .filter(([name]) => roster.has(name))
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([name, runs]) => ({ name, runs }))
+        setPreview({ topRuns, matches: matches.length, tournaments: tournamentSet.size })
+      })
+      .catch(() => {})
+  }, [])
 
   const handleCredentials = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -33,24 +65,19 @@ function SignInForm() {
 
           <div className="auth-preview-card">
             <div className="auth-preview-title">Most runs — live leaderboard</div>
-            <div className="auth-preview-row">
-              <div className="auth-pname"><div className="auth-preview-medal">1</div>kdb177</div>
-              <div className="auth-preview-val">324</div>
-            </div>
-            <div className="auth-preview-row">
-              <div className="auth-pname"><div className="auth-preview-medal auth-medal-muted">2</div>arjsoh</div>
-              <div className="auth-preview-val auth-val-muted">319</div>
-            </div>
-            <div className="auth-preview-row">
-              <div className="auth-pname"><div className="auth-preview-medal auth-medal-muted">3</div>nervous_pizza1078</div>
-              <div className="auth-preview-val auth-val-muted">309</div>
-            </div>
+            {(preview?.topRuns ?? []).map((p, i) => (
+              <div key={p.name} className="auth-preview-row">
+                <div className="auth-pname"><div className={`auth-preview-medal${i > 0 ? " auth-medal-muted" : ""}`}>{i + 1}</div>{p.name}</div>
+                <div className={`auth-preview-val${i > 0 ? " auth-val-muted" : ""}`}>{p.runs}</div>
+              </div>
+            ))}
+            {!preview && <div style={{ color: "var(--muted-2)", fontSize: 12, padding: "8px 0" }}>Loading…</div>}
           </div>
 
           <div className="auth-stat-strip">
-            <div className="auth-stat-item"><div className="auth-stat-num">15</div><div className="auth-stat-lab">Matches</div></div>
-            <div className="auth-stat-item"><div className="auth-stat-num">18</div><div className="auth-stat-lab">Players</div></div>
-            <div className="auth-stat-item"><div className="auth-stat-num">2</div><div className="auth-stat-lab">Tournaments</div></div>
+            <div className="auth-stat-item"><div className="auth-stat-num">{preview?.matches ?? "—"}</div><div className="auth-stat-lab">Matches</div></div>
+            <div className="auth-stat-item"><div className="auth-stat-num">{ROSTER_SIZE}</div><div className="auth-stat-lab">Players</div></div>
+            <div className="auth-stat-item"><div className="auth-stat-num">{preview?.tournaments ?? "—"}</div><div className="auth-stat-lab">Tournaments</div></div>
           </div>
         </div>
 
@@ -235,6 +262,14 @@ export default function SignInPage() {
           font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted-2);
           letter-spacing:1px; border-top:1px solid var(--border);
           max-width:1200px; margin:0 auto;
+        }
+
+        @media (max-width:768px) {
+          .auth-header { padding:26px 20px 18px; }
+          .auth-hero { grid-template-columns:1fr; padding:40px 20px 40px; gap:40px; }
+          .auth-pitch h2 { font-size:40px; }
+          .auth-preview-card { width:100%; max-width:none; }
+          .auth-card { width:100%; }
         }
       `}</style>
     </div>
