@@ -170,7 +170,11 @@ export default function ManageData() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
-      if (!res.ok) { toast("Import failed; backup was saved", true); return }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Unknown error" }))
+        toast("Import failed: " + err.error, true)
+        return
+      }
       toast("Full replace imported! Reload to see changes.")
     } catch {
       toast("Error importing", true)
