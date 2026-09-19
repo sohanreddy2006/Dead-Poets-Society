@@ -103,7 +103,7 @@ export async function POST(request: Request) {
           },
         })
       }
-    })
+    }, { maxWait: 10000, timeout: 60000 })
 
     return NextResponse.json({ success: true, importedMatches: matches.length })
   } catch (e: any) {
