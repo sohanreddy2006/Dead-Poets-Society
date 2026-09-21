@@ -3,7 +3,7 @@ import { prisma } from './prisma'
 export const TEAM_NAME = 'Dead Poets Society'
 export const TEAM_ROSTER = [
   'kdb177', 'arjsoh', 'mick_056', 'nick01311', 'xtzgamer24',
-  'xenomphanes', 'sujay', 'zenixyt77', 'og1lucky', 'emilylei981',
+  'xenomphanes', '__sujay__', 'zenix69x', 'og1lucky', 'emilylei981',
   'light_6921', '1blonde', 'shyam.ly', 'khushal0__0', 'nervous_pizza1078',
   'vs_reddy12', 'isagi_17', 'milkshaikh0292',
   'vishwamispro0556', 'rooniyck',
@@ -18,8 +18,8 @@ export const ROLES: Record<string, string> = {
   nick01311: 'Batter',
   xtzgamer24: 'All-Rounder',
   xenomphanes: 'All-Rounder',
-  sujay: 'Bowler',
-  zenixyt77: 'Batter',
+  '__sujay__': 'Bowler',
+  'zenix69x': 'Batter',
   og1lucky: 'Batter',
   emilylei981: 'Batter',
   light_6921: 'Batter',
