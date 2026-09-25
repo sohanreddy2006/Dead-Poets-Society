@@ -178,6 +178,21 @@ export default function SummaryClient() {
         </div>
       )}
 
+      {tournament === "Blue Forge" && (
+        <div className="r16-banner" style={{
+          display: "flex", alignItems: "center", gap: 12,
+          background: "var(--card)", border: "1px solid color-mix(in srgb, var(--danger) 35%, var(--border))",
+          borderLeft: `3px solid var(--danger)`, borderRadius: 10,
+          padding: "14px 18px", marginBottom: 16,
+        }}>
+          <div style={{ fontSize: 18, lineHeight: 1 }}>🏏</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 13.5 }}>Blue Forge — Eliminated in Group Stage</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>Finished with 1 win and 2 losses in the group stage.</div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div className="filter-toggle" style={{ display: "inline-flex", gap: 4, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: 3 }}>
           {filterBtns.map(b => (
