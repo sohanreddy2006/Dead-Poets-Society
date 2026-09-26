@@ -32,9 +32,9 @@ body{
   text-shadow: 0 0 30px color-mix(in srgb, var(--acc1) 35%, transparent);
 }
 .site-tag{
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; letter-spacing: 1.5px;
-  color: var(--muted); text-transform: uppercase; margin-top: 6px;
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 17px; letter-spacing: 0.5px;
+  color: var(--muted); margin-top: 6px;
 }
 
 .nav{display:flex; gap:6px; margin-top:22px; border-bottom:1px solid var(--border); flex-wrap:wrap; margin-bottom:0;}

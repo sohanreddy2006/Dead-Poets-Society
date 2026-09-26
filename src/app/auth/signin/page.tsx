@@ -162,8 +162,8 @@ export default function SignInPage() {
           text-shadow:0 0 24px color-mix(in srgb, var(--acc1) 30%, transparent);
         }
         .auth-tournament-tag {
-          font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:1.5px;
-          color:var(--muted); text-transform:uppercase; margin-top:6px;
+          font-family:'EB Garamond',serif; font-style:italic; font-size:17px;
+          letter-spacing:0.5px; color:var(--muted); margin-top:6px;
         }
 
         .auth-hero {
