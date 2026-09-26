@@ -13,7 +13,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className="container" style={{ maxWidth: 1400, margin: "0 auto", padding: "0 48px 70px" }}>
       <header className="site-header">
         <h1 className="site-title">Dead Poets Society</h1>
-        <div className="site-tag">Tournament — Markhors</div>
+        <div className="site-tag">Carpe Diem — Seize the Day</div>
       </header>
       <NavBar />
       {children}

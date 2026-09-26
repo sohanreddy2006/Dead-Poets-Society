@@ -55,7 +55,7 @@ function SignInForm() {
     <>
       <div className="auth-header">
         <h1 className="auth-team-name">Dead Poets Society</h1>
-        <div className="auth-tournament-tag">Tournament — Markhors</div>
+        <div className="auth-tournament-tag">Carpe Diem — Seize the Day</div>
       </div>
 
       <div className="auth-hero">

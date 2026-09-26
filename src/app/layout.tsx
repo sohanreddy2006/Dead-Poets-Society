@@ -4,7 +4,7 @@ import AuthProvider from "@/components/AuthProvider"
 import AppShell from "@/components/AppShell"
 
 export const metadata: Metadata = {
-  title: "Markhors — Dead Poets Society",
+  title: "Dead Poets Society",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
