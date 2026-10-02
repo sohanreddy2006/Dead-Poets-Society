@@ -194,14 +194,19 @@ export function calcPlayerStats(name: string, entries: PlayerEntry[], matchesAll
   for (const e of entries) {
     matchIds.add(e.matchId)
     if (e.type === 'bat' && e.bat) {
+      // DNB = named in squad but did not bat. Still counts as a match
+      // appearance above, but not as a batting innings.
+      if (e.bat.dismissal === 'dnb') continue
       innsBat++
-      if (e.bat.dismissal !== 'dnb') {
-        runs += e.bat.runs; balls += e.bat.balls; fours += e.bat.fours; sixes += e.bat.sixes
-        if (e.bat.dismissal !== 'not out') dism++
-        if (e.bat.runs >= 50) fifties++
-      }
+      runs += e.bat.runs; balls += e.bat.balls; fours += e.bat.fours; sixes += e.bat.sixes
+      if (e.bat.dismissal !== 'not out') dism++
+      if (e.bat.runs >= 50) fifties++
     } else if (e.type === 'bowl' && e.bowl) {
-      innsBowl++; wkts += e.bowl.wkts; ballsBowled += oversToBalls(e.bowl.overs); runsConc += e.bowl.runs; maidens += e.bowl.maidens
+      // Did not bowl a single ball = not a bowling innings. Even one ball
+      // bowled counts. Wickets guard keeps corrupt 0-over rows with wickets.
+      const entryBalls = oversToBalls(e.bowl.overs)
+      if (entryBalls === 0 && e.bowl.wkts === 0) continue
+      innsBowl++; wkts += e.bowl.wkts; ballsBowled += entryBalls; runsConc += e.bowl.runs; maidens += e.bowl.maidens
       if (e.bowl.wkts >= 5) fiveWkts++
       else if (e.bowl.wkts >= 3) threeWkts++
     }

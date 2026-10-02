@@ -14,8 +14,8 @@ type ImportMatch = {
   innings?: Array<{
     battingTeam?: string
     bowlingTeam?: string
-    total?: string
-    overs?: string
+    total?: string | number
+    overs?: string | number
     extras?: number
     batsmen?: Array<{
       name?: string
@@ -25,7 +25,7 @@ type ImportMatch = {
       fours?: number
       sixes?: number
       dismissal?: string
-      sr?: string
+      sr?: string | number
       excludedFromStats?: boolean
     }>
     bowlers?: Array<{
@@ -35,7 +35,7 @@ type ImportMatch = {
       maidens?: number
       runs?: number
       wkts?: number
-      econ?: string
+      econ?: string | number
       excludedFromStats?: boolean
     }>
   }>
@@ -102,8 +102,8 @@ export async function POST(request: Request) {
               create: (m.innings || []).map(inn => ({
                 battingTeam: inn.battingTeam || "",
                 bowlingTeam: inn.bowlingTeam || "",
-                total: inn.total || "",
-                overs: inn.overs || "",
+                total: inn.total != null ? String(inn.total) : "",
+                overs: inn.overs != null ? String(inn.overs) : "",
                 extras: inn.extras || 0,
                 batsmen: {
                   create: (inn.batsmen || []).map(b => ({
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
                     fours: b.fours || 0,
                     sixes: b.sixes || 0,
                     dismissal: b.dismissal || "",
-                    sr: b.sr || "",
+                    sr: b.sr != null ? String(b.sr) : "",
                     excludedFromStats: b.excludedFromStats || false,
                   })),
                 },
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
                     maidens: b.maidens || 0,
                     runs: b.runs || 0,
                     wkts: b.wkts || 0,
-                    econ: b.econ || "",
+                    econ: b.econ != null ? String(b.econ) : "",
                     excludedFromStats: b.excludedFromStats || false,
                   })),
                 },
