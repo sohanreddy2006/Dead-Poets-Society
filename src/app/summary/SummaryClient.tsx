@@ -21,6 +21,8 @@ const ROLE_CHIP: Record<string, { cls: string }> = {
   "All-Rounder": { cls: "ar" },
 }
 
+const IN_PROGRESS_TOURNAMENTS = new Set(["HCML Season 2"])
+
 function Board({ title, children, accent }: { title: string; children: React.ReactNode; accent: string }) {
   return (
     <div className={`board ${accent}`}>
@@ -141,12 +143,48 @@ export default function SummaryClient() {
     { key: "bwl" as const, label: "Bowling", cls: "bwl" },
   ]
 
+  let tournamentMVP: { name: string; impact: number } | null = null
+  if (matches.length > 0) {
+    let best = { name: "", impact: 0 }
+    for (const name of TEAM_ROSTER) {
+      const s = calcPlayerStats(name, getPlayerEntriesFromMatches(matches, name), matches, tournament)
+      if (s.impact > best.impact) best = { name, impact: s.impact }
+    }
+    if (best.name) tournamentMVP = best
+  }
+  const mvpInProgress = IN_PROGRESS_TOURNAMENTS.has(tournament)
+
   return (
     <>
       <TournamentFilter tournaments={tournaments} />
       <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: 1.5, color: "var(--muted-2)", textTransform: "uppercase", margin: "26px 0 16px" }}>
         Summary — {tournament}
       </div>
+
+      {tournamentMVP && (
+        <div className="r16-banner" style={{
+          display: "flex", alignItems: "center", gap: 12,
+          background: "var(--card)",
+          border: `1px solid color-mix(in srgb, var(--acc1) ${mvpInProgress ? "22%" : "45%"}, var(--border))`,
+          borderLeft: `3px solid ${mvpInProgress ? "var(--muted-2)" : "var(--acc1)"}`,
+          borderRadius: 10,
+          padding: "14px 18px", marginBottom: 16,
+        }}>
+          <div style={{ fontSize: 18, lineHeight: 1 }}>🏆</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 13.5 }}>
+              {mvpInProgress
+                ? `Current leader — ${tournamentMVP.name}`
+                : `Player of the Tournament — ${tournamentMVP.name}`}
+            </div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>
+              {mvpInProgress
+                ? `${tournamentMVP.impact} pts · award on completion`
+                : `${tournamentMVP.impact} impact points`}
+            </div>
+          </div>
+        </div>
+      )}
 
       {tournament === "Markhors" && (
         <div className="r16-banner" style={{
